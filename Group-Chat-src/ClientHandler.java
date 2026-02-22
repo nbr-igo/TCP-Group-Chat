@@ -9,7 +9,7 @@ import java.io.IOException;
 public class ClientHandler implements Runnable { // Implements Runnable so each client can run in its own thread
 
     public static ArrayList<ClientHandler> clientHandlers = new ArrayList<>(); // Shared list that holds every ClientHandler connected to server
-    //These are instance variables that store information for this specific client:
+    // These are instance variables that store information for this specific client:
     private Socket socket; // Socket for this specific client 
     private BufferedReader bufferedReader; // Reads messages sent FROM this client 
     private BufferedWriter bufferedWriter; // Sends messages TO this client 
@@ -88,7 +88,7 @@ public class ClientHandler implements Runnable { // Implements Runnable so each 
     public void removeClientHandler() { // Removes this client from shared list
         clientHandlers.remove(this); // Remove this instance 
         broadcastMessage("SERVER: " + clientUsername + " has gone offline!"); // Inform group user went offline
-        System.out.println("SERVER: " + clientUsername + " has disconnected from " + groupName + " and has gone offline!!");// Log disconnection
+        System.out.println("SERVER: " + clientUsername + " has disconnected from " + groupName + " and has gone offline!!"); // Log disconnection
 
     }
 
