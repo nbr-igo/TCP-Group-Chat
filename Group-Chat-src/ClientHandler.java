@@ -6,106 +6,106 @@ import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.io.IOException;
 
-public class ClientHandler implements Runnable {//Runnable meaning can be ren by its own thread
+public class ClientHandler implements Runnable { // Implements Runnable so each client can run in its own thread
 
-    public static ArrayList<ClientHandler> clientHandlers = new ArrayList<>();//shared list that holds every ClientHandler connected to server
+    public static ArrayList<ClientHandler> clientHandlers = new ArrayList<>(); // Shared list that holds every ClientHandler connected to server
     //These are instance variables that store information for this specific client:
-    private Socket socket;//socket → The network connection to that client.
-    private BufferedReader bufferedReader;//bufferedReader → Reads messages incoming
-    private BufferedWriter bufferedWriter;//bufferedWriter → Sends messages to the client.
-    private String clientUsername;//clientUsername → Stores their username.
-    private String groupName;//groupName → Keeps track of which chat room (group) they are in.
+    private Socket socket; // Socket for this specific client 
+    private BufferedReader bufferedReader; // Reads messages sent FROM this client 
+    private BufferedWriter bufferedWriter; // Sends messages TO this client 
+    private String clientUsername; // Stores this client's username
+    private String groupName; // Tracks which group (chat room) the client is currently in 
 
-    public ClientHandler(Socket socket) {//ClientHandler method with socket input
+    public ClientHandler(Socket socket) { // Constructor runs when a new client connects
         try {
-            this.socket = socket;//store socket passed from server
-            this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));//creates output stream to write data over socket
-            this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));//creates input stream to read data over socket
-            this.clientUsername = bufferedReader.readLine();//reads username the client sends first
-            this.groupName = "GLOBAL";//initial group
-            clientHandlers.add(this);//add this clientHandler to the shared list
-            broadcastMessage("SERVER: " + clientUsername + " has entered the chat!" );//Let everyone know a client joined
-            System.out.println("SERVER: " + clientUsername + " has entered " + groupName + " Chat!!" );//log on the server
+            this.socket = socket; // Store the socket connection
+            this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())); // Create writer linked to client's output stream
+            this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream())); // Create reader linked to client's input stream
+            this.clientUsername = bufferedReader.readLine(); // First message client sends is their username
+            this.groupName = "GLOBAL"; // Default group when client connects
+            clientHandlers.add(this); // Add this clientHandler to shared list
+            broadcastMessage("SERVER: " + clientUsername + " has entered the chat!" ); // Let everyone know a client joined
+            System.out.println("SERVER: " + clientUsername + " has entered " + groupName + " Chat!!" ); // Log on server
         } catch (IOException e) {
-            closeEverything(socket, bufferedReader, bufferedWriter);//anything goes wrong, close socket and I/O Streams
+            closeEverything(socket, bufferedReader, bufferedWriter); // If anything fails during setup, close resources
         }
     }
 
     @Override
-    public void run() {//Is constantly reading messages from the client // this is what the thread actually does  
-        String messageFromClient;
+    public void run() { // This mehod runs when thread starts
+        String messageFromClient; // Stores incoming messages
 
-        while (socket.isConnected()){
+        while (!socket.isClosed()){ // Keep reading while client is connected
             try {
-                messageFromClient = bufferedReader.readLine();
+                messageFromClient = bufferedReader.readLine(); // Read message from client 
 
-                if (messageFromClient == null || messageFromClient.equals("/exit") ) {
-                    closeEverything(socket, bufferedReader, bufferedWriter);
+                if (messageFromClient == null || messageFromClient.equals("/exit") ) { // If client disconnects or types exit command
+                    closeEverything(socket, bufferedReader, bufferedWriter); // Close resources
                     break;
                 }
 
-                if (messageFromClient.startsWith("/join ")) {// Client switches chat rooms
-                    String newGroup = messageFromClient.substring(6).trim();
-                    System.out.println("SERVER: " + clientUsername + " switched from " + groupName + " to " + newGroup);
-                    broadcastMessage("SERVER: " + clientUsername + " has left " + groupName + " Chat");
-                    this.groupName = newGroup;
-                    broadcastMessage("SERVER: " + clientUsername + " has joined " + groupName + " Chat");
-                    continue;
+                if (messageFromClient.startsWith("/join ")) { // If Client wants to join another chat room
+                    String newGroup = messageFromClient.substring(6).trim(); // Extract new group name from command 
+                    System.out.println("SERVER: " + clientUsername + " switched from " + groupName + " to " + newGroup); // Log gorup switch
+                    broadcastMessage("SERVER: " + clientUsername + " has left " + groupName + " Chat"); // Inform current group user left
+                    this.groupName = newGroup; // Update group name
+                    broadcastMessage("SERVER: " + clientUsername + " has joined " + groupName + " Chat");// Inform new group user joined
+                    continue; // Skip remainin logic and continue loop
                 }
 
-                if (messageFromClient.equals("/leave")) {// Client switches back to origianl gorupchat "Global"
-                    System.out.println("SERVER: "  + clientUsername + " left " + groupName + " and returned to GLOBAL");
-                    broadcastMessage("SERVER: " + clientUsername + " has left " + groupName + " Chat");
-                    this.groupName = "GLOBAL";
-                    broadcastMessage("SERVER: " + clientUsername + " has left " + groupName + " Chat");
-                    continue;
+                if (messageFromClient.equals("/leave")) { // If Client wants to go back to origianl gorupchat "Global"
+                    System.out.println("SERVER: "  + clientUsername + " left " + groupName + " and returned to GLOBAL"); // Log event
+                    broadcastMessage("SERVER: " + clientUsername + " has left " + groupName + " Chat"); // Inform current group user left
+                    this.groupName = "GLOBAL"; // Update group name
+                    broadcastMessage("SERVER: " + clientUsername + " has left " + groupName + " Chat"); // Notify GLOBAL group
+                    continue; // Skip remainin logic and continue loop
                 }
 
 
-                    broadcastMessage( clientUsername + ": " + messageFromClient);
-                    System.out.println("SERVER: [" + groupName + "] " + clientUsername + ": " + messageFromClient);;
+                    broadcastMessage( clientUsername + ": " + messageFromClient); // Normal message send to others in same group
+                    System.out.println("SERVER: [" + groupName + "] " + clientUsername + ": " + messageFromClient); // Log message on server console
                 } catch (IOException e) {
-                    closeEverything(socket, bufferedReader, bufferedWriter);
+                    closeEverything(socket, bufferedReader, bufferedWriter); // If reading fails, close everything
                     break;
             }
         } 
     }
 
-    public void broadcastMessage(String messageToSend) {//Will send msg to every other client connected to the saeme group chat
-        for(ClientHandler clientHandler : clientHandlers){//Will not send it to itself
+    public void broadcastMessage(String messageToSend) { // Sends message to all clients in the same group (except sender)
+        for(ClientHandler clientHandler : clientHandlers){ // Loop through all connected clients
             try {
-                if (!clientHandler.clientUsername.equals(clientUsername) && clientHandler.groupName.equals(this.groupName)){
-                    clientHandler.bufferedWriter.write(messageToSend);//to send the message in the form of bytes through the internet connection(the socket)
-                    clientHandler.bufferedWriter.newLine();//used to mark the end of the message
-                    clientHandler.bufferedWriter.flush();//force data in memory to send right away through socket
+                if (!clientHandler.clientUsername.equals(clientUsername) && clientHandler.groupName.equals(this.groupName)){ // Do not send to self AND only send to same group
+                    clientHandler.bufferedWriter.write(messageToSend); // Write message to that client
+                    clientHandler.bufferedWriter.newLine(); // Mark end of message
+                    clientHandler.bufferedWriter.flush(); // Force immediate sending
                 }
             } catch (IOException e) {
-                closeEverything(socket, bufferedReader, bufferedWriter);
+                closeEverything(socket, bufferedReader, bufferedWriter); // If sending fails, close this connection
             }
         }
     }
 
-    public void removeClientHandler() {
-        clientHandlers.remove(this);//this is just to remove this ClientHandler from ClientHandlers
-        broadcastMessage("SERVER: " + clientUsername + " has gone offline!");
-        System.out.println("SERVER: " + clientUsername + " has disconnected from " + groupName + " and has gone offline!!");
+    public void removeClientHandler() { // Removes this client from shared list
+        clientHandlers.remove(this); // Remove this instance 
+        broadcastMessage("SERVER: " + clientUsername + " has gone offline!"); // Inform group user went offline
+        System.out.println("SERVER: " + clientUsername + " has disconnected from " + groupName + " and has gone offline!!");// Log disconnection
 
     }
 
-    public void closeEverything(Socket socket, BufferedReader bufferedReader, BufferedWriter bufferedWriter) {
-        removeClientHandler();
+    public void closeEverything(Socket socket, BufferedReader bufferedReader, BufferedWriter bufferedWriter) { // Mehtod closes all open resources safely
+        removeClientHandler(); // Remove client first
         try {
-            if (bufferedReader != null) {//if bufferedReader exist close 
+            if (bufferedReader != null) { // If bufferedReader exist close 
                 bufferedReader.close();
             }
-            if (bufferedWriter != null) {//if bufferedWriter exist close 
+            if (bufferedWriter != null) { // If bufferedWriter exist close 
                 bufferedWriter.close();
             }
-            if (socket != null) {//if socket exist close 
+            if (socket != null) { // If socket exist close 
                 socket.close();
             }
         } catch (IOException e) {
-            e.printStackTrace();//prints the errors and moves on
+            e.printStackTrace(); // Prints the errors and moves on
         }
     }
 }
