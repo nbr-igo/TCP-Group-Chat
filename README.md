@@ -1,21 +1,21 @@
 # TCP Group Chat
 
-📡 Java Multi-Threaded Group Chat
-🚀 Features
-🧵 Multi-threaded server (each client runs on its own thread)
-🌍 Global default chat room
-🏠 Create and join custom chat rooms
-🔁 Switch rooms using commands
-❌ Graceful exit with /exit
-🔊 Real-time message broadcasting
-🛑 Automatic cleanup on disconnect
-🏗️ Architecture Overview
-🖥️ Server Side
+📡 Java Multi-Threaded Group Chat<br/>
+🚀 Features<br/>
+🧵 Multi-threaded server (each client runs on its own thread)<br/>
+🌍 Global default chat room<br/>
+🏠 Create and join custom chat rooms<br/>
+🔁 Switch rooms using commands<br/>
+❌ Graceful exit with /exit<br/>
+🔊 Real-time message broadcasting<br/>
+🛑 Automatic cleanup on disconnect<br/>
+🏗️ Architecture Overview<br/>
+🖥️ Server Side<br/>
 
-📚 Concepts Used
-Java Sockets (ServerSocket, Socket)
-Multi-threading (Runnable, Thread)
-Buffered I/O Streams
-Shared static collections
-Command parsing
-Resource cleanup & exception handling
+📚 Concepts Used<br/>
+Java Sockets (ServerSocket, Socket)<br/>
+Multi-threading (Runnable, Thread)<br/>
+Buffered I/O Streams<br/>
+Shared static collections<br/>
+Command parsing<br/>
+Resource cleanup & exception handling<br/>
