@@ -1,7 +1,7 @@
 # TCP Group Chat
 
-📡 Java Multi-Threaded Group Chat<br/>
-🚀 Features<br/>
+## 📡 Java Multi-Threaded Group Chat<br/>
+### 🚀 Features<br/>
 🧵 Multi-threaded server (each client runs on its own thread)<br/>
 🌍 Global default chat room<br/>
 🏠 Create and join custom chat rooms<br/>
@@ -12,7 +12,7 @@
 🏗️ Architecture Overview<br/>
 🖥️ Server Side<br/>
 
-📚 Concepts Used<br/>
+### 📚 Concepts Used<br/>
 Java Sockets (ServerSocket, Socket)<br/>
 Multi-threading (Runnable, Thread)<br/>
 Buffered I/O Streams<br/>
