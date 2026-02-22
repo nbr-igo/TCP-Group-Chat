@@ -1,6 +1,5 @@
 # TCP Group Chat
-
-## 📡 Java Multi-Threaded Group Chat<br/>
+A multi-threaded Java chat application using sockets that supports real-time group messaging and dynamic chat rooms.
 ### 🚀 Features<br/>
 🧵 Multi-threaded server (each client runs on its own thread)<br/>
 🌍 Global default chat room<br/>
